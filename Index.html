@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三千预算进图吧，学校对面开网吧</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin: 0;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        .question {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+        }
+        .option {
+            display: block;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin: 10px 0;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.3s;
+        }
+        .option:hover {
+            background: #e0e0e0;
+        }
+        .selected {
+            background: #007aff;
+            color: white;
+        }
+        .next-btn {
+            margin-top: 20px;
+            padding: 15px 30px; /* 增加按钮的内边距 */
+            font-size: 18px; /* 增加字体大小 */
+            border: none;
+	
+            border-radius: 5px;
+            background: #007aff;
+            color: white;
+            cursor: pointer;
+            width: 100%; /* 设置宽度为100% */
+            max-width: 400px; /* 最大宽度 */
+        }
+        .hidden {
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="quiz" class="question">
+    <h2 id="question-title"></h2>
+    <div id="options"></div>
+    <button id="next-btn" class="next-btn hidden">继续</button>
+</div>
+
+<div id="result" class="hidden">
+    <h2>你的选择:</h2>
+    <table id="result-table">
+        <thead>
+            <tr>
+                <th>配件</th>
+                <th>选项</th>
+                <th>价格</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <h3 id="total-score"></h3>
+</div>
+
+<script>
+    const questions = [
+        {
+            title: "板U：嘤国大理石 VS AMD, YES！！",
+            options: [
+                { text: "性价比：i5-12490F + 微星B760M ￥1100", score: 1100 },
+                { text: "畅玩：13700KF + 技嘉Z790M ￥3300", score: 3300 },
+                { text: "性价比：R5-5600G + 微星B450M-A Pro Max II ￥1000", score: 1000 },
+                { text: "畅玩：R7-7800X3D + 微星B650M-E ￥2800", score: 2800 },
+            ]
+        },
+        {
+            title: "显卡：老黄与苏妈的恩怨情仇",
+            options: [
+                { text: "性价比2K：NV4060 ￥2100", score: 2100 },
+                { text: "畅玩4K：NV4080 ￥7500", score: 7500 },
+                { text: "纯享4K：NV4090 ￥16000", score: 16000 },
+                { text: "性价比2K：RX6750GRE ￥1900", score: 1900 },
+                { text: "畅玩4K：RX7900XT ￥5100", score: 5100 },
+                { text: "纯享4K：RX7900XTX ￥7000", score: 7000 },
+            ]
+        },
+		{
+		    title: "内存：随机存取存储器(Random Access Memory, RAM)",
+		    options: [
+		        { text: "性价比DDR4-能用就行：英睿达镁光-16G-3200MHz ￥180", score: 180 },
+		        { text: "性价比DDR4-质感在线：金士顿野兽-16G-3200MHz ￥250", score: 250 },
+		        { text: "性价比DDR4-能用就行：英睿达镁光-32G-3200MHz ￥300", score: 300 },
+		        { text: "性价比DDR4-质感在线：金士顿野兽-32G-3200MHz ￥400", score: 400 },
+		        { text: "高频率DDR5-能用就行：英睿达镁光-16G-6000MHz ￥320", score: 320 },
+		        { text: "高频率DDR5-质感在线：金士顿野兽-16G-6000MHz ￥400", score: 400 },
+		        { text: "高频率DDR5-能用就行：英睿达镁光-32G-6000MHz ￥600", score: 600 },
+		        { text: "高频率DDR5-质感在线：金士顿野兽-32G-6000MHz ￥750", score: 750 }
+		    ]
+		},
+		{
+		    title: "硬盘：学习资料四层复式大别野",
+		    options: [
+		        { text: "便宜大碗-PCIE3：海康威视CC500-512G ￥250", score: 250 },
+		        { text: "便宜大碗-PCIE3：海康威视CC500-1T ￥450", score: 450 },
+		        { text: "便宜大碗-PCIE3：海康威视CC500-2T ￥800", score: 800 },
+		        { text: "便宜大碗-PCIE3：三星PM981a-512G ￥300", score: 300 },
+		        { text: "便宜大碗-PCIE3：三星PM981a-1T ￥480", score: 480 },
+		        { text: "便宜大碗-PCIE3：三星PM981a-2T ￥1100", score: 1100 },
+		        { text: "超速读写-PCIE4：海康威视CC700-512G ￥350", score: 350 },
+		        { text: "超速读写-PCIE4：海康威视CC700-1T ￥500", score: 500 },
+		        { text: "超速读写-PCIE4：海康威视CC700-2T ￥850", score: 850 },
+		        { text: "超速读写-PCIE4：三星980Pro-512G ￥560", score: 560 },
+		        { text: "超速读写-PCIE4：三星980Pro-1T ￥800", score: 800 },
+		        { text: "超速读写-PCIE4：三星980Pro-2T ￥1300", score: 1300 }
+		    ]
+		},
+		{
+		    title: "电源：再多看一眼就会爆炸",
+		    options: [
+		        { text: "保命模式：微星500W ￥230", score: 230 },
+		        { text: "放肆超频：微星750W ￥370", score: 370 },
+		        { text: "60%的全人类感谢你：微星1000W ￥900", score: 900 }
+		    ]
+		},
+		{
+		    title: "散热：再靠近一点就会融化",
+		    options: [
+		        { text: "别炸就行：原装散热/PDD凑数散热器 ￥50", score: 50 },
+		        { text: "中规中矩：标准散热 ￥200", score: 200 },
+		        { text: "感冒了我心疼：水冷散热 ￥400", score: 400 }
+		    ]
+		},
+		{
+		    title: "网卡：卑微网卡，在线460",
+		    options: [
+		        { text: "真男人从不允许有一丝延迟：网线嘎嘎快 ￥0", score: 0 },
+		        { text: "需要优雅的享受一下爵士姿态：WIFI/蓝牙 ￥100", score: 100 }
+		    ]
+		},
+		{
+		    title: "机箱：主观好看那就是好看",
+		    options: [
+		        { text: "1：能用就行 ￥50", score: 50 },
+		        { text: "2：中规中矩 ￥100", score: 100 },
+		        { text: "3：来点质感 ￥200", score: 200 },
+		        { text: "4：浅烧一下 ￥500", score: 500 },
+		        { text: "5：不想过了 ￥1000", score: 1000 }
+		    ]
+		},
+		{
+		    title: "屏幕：1帧能玩2帧流畅3帧电竞",
+		    options: [
+		        { text: "1K：FHD-KTC 180Hz ￥550", score: 550 },
+		        { text: "1K：FHD-SANC 240Hz ￥1000", score: 1000 },
+		        { text: "1K：FHD-KTC 360Hz ￥1500", score: 1500 },
+		        { text: "2K：QHD-KTC 180Hz ￥800", score: 800 },
+		        { text: "2K：QHD-SANC 240Hz ￥1300", score: 1300 },
+		        { text: "?：先不买 ￥0", score: 0 }
+		    ]
+		}
+
+        // 其他问题...
+    ];
+
+    let currentQuestionIndex = 0;
+    let totalScore = 0;
+    const selectedOptions = [];
+
+    function loadQuestion() {
+        const question = questions[currentQuestionIndex];
+        document.getElementById("question-title").innerText = question.title;
+        const optionsContainer = document.getElementById("options");
+        optionsContainer.innerHTML = '';
+
+        question.options.forEach((option) => {
+            const optionDiv = document.createElement("div");
+            optionDiv.className = "option";
+            optionDiv.innerText = option.text;
+            optionDiv.onclick = () => selectOption(optionDiv, option);
+            optionsContainer.appendChild(optionDiv);
+        });
+    }
+
+    function selectOption(optionDiv, option) {
+        const options = document.querySelectorAll('.option');
+        options.forEach(opt => opt.classList.remove('selected')); // 移除所有选项的选中效果
+        optionDiv.classList.add('selected'); // 添加选中效果
+        selectedOptions[currentQuestionIndex] = option;
+        totalScore += option.score;
+        document.getElementById("next-btn").classList.remove("hidden");
+    }
+
+    document.getElementById("next-btn").onclick = function () {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+            this.classList.add("hidden");
+        } else {
+            showResults();
+        }
+    };
+
+    function showResults() {
+        document.getElementById("quiz").classList.add("hidden");
+        const resultTableBody = document.querySelector("#result-table tbody");
+        selectedOptions.forEach((option, index) => {
+            const row = resultTableBody.insertRow();
+            const questionText = questions[index].title.split('：')[0];
+            const optionText = option.text.split('：')[1].split('￥')[0].trim();
+            const priceText = option.text.match(/￥[0-9,]+/)[0].trim();
+            row.insertCell(0).innerText = questionText; 
+            row.insertCell(1).innerText = optionText; 
+            row.insertCell(2).innerText = priceText; 
+        });
+        document.getElementById("total-score").innerText = `汇总：￥${totalScore}`;
+        document.getElementById("result").classList.remove("hidden");
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
